@@ -1,9 +1,10 @@
 package org.example.sandbox.inheritance;
 
-public class Flyable {
+public interface Flyable {
 
     void takeOff();
     void land();
     double getMaxAltitude();
 
+    void hover();
 }
