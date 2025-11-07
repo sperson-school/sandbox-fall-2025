@@ -6,10 +6,12 @@ import org.example.sandbox.trees.Tree;
 
 import java.util.*;
 
-public class BinarySearchTree<T extends Comparable> implements Tree<T> {
+public class BinarySearchTree<T extends Comparable<T>> implements Tree<T> {
 
     private BinaryTreeNode<T> root;
     private int count;
+    // flag used during delete to detect if an element was actually removed
+    private boolean deletedFlag = false;
 
     public BinarySearchTree() {
         this.root = null;
@@ -20,6 +22,7 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     public boolean create() {
 
         this.root = new BinaryTreeNode<>();
+        this.count = 0;
 
         return true;
     }
@@ -27,39 +30,38 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     @Override
     public T insert(T element) {
 
+        if (element == null) return null;
+
         T insertedElement = null;
         if (this.root == null) {
-            this.root = new BinaryTreeNode(element);
+            this.root = new BinaryTreeNode<>(element);
             insertedElement = root.element;
+            this.count++;
         } else {
             insertedElement = insertInto(element, root);
+            if (insertedElement != null) this.count++;
         }
         return insertedElement;
     }
 
-    private T insertInto(T element, BinaryTreeNode<T> root) {
+    private T insertInto(T element, BinaryTreeNode<T> node) {
 
-        T insertedElement = null;
-        if (element.compareTo(root.element) < 0) {
-            if (root.left.element != null) {
-                insertInto(element, root.left);
-            } else {
-                root.left.element = element;
-                root.left.left = new BinaryTreeNode<>();
-                root.left.right = new BinaryTreeNode<>();
-                insertedElement = root.left.element;
-            }
-        } else {
-            if (root.right.element != null) {
-                insertInto(element, root.right);
-            } else {
-                root.right.element = element;
-                root.right.left = new BinaryTreeNode<>();
-                root.right.right = new BinaryTreeNode<>();
-                insertedElement = root.right.element;
-            }
+        if (node == null) return null;
+
+        // if this node is an empty/sentinel node, place element here
+        if (node.element == null) {
+            node.element = element;
+            node.left = new BinaryTreeNode<>();
+            node.right = new BinaryTreeNode<>();
+            return node.element;
         }
-        return insertedElement;
+
+        int cmp = element.compareTo(node.element);
+        if (cmp < 0) {
+            return insertInto(element, node.left);
+        } else {
+            return insertInto(element, node.right);
+        }
     }
 
     @Override
@@ -67,7 +69,7 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
 
         BinaryTreeNode<T> target = findNode(targetElement, root);
 
-        if (target == null) {
+        if (target == null || target.getElement() == null) {
             throw new ElementNotFoundException(this.getClass()
                                                    .getCanonicalName());
         }
@@ -76,10 +78,9 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     }
 
     private BinaryTreeNode<T> findNode(T targetElement, BinaryTreeNode<T> next) {
-        if (next == null) return null;
+        if (next == null || next.getElement() == null) return null;
 
-        if (next.getElement()
-                .equals(targetElement)) return next;
+        if (next.getElement().equals(targetElement)) return next;
 
         BinaryTreeNode<T> temp = findNode(targetElement, next.getLeft());
 
@@ -91,53 +92,62 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     @Override
     public boolean delete(T data) {
 
-        deleteNode(this.root, data);
-        return true;
+        if (this.root == null) return false;
+        deletedFlag = false;
+        this.root = deleteNode(this.root, data);
+        if (deletedFlag && this.count > 0) this.count--;
+        return deletedFlag;
     }
 
-    private BinaryTreeNode<T> deleteNode(BinaryTreeNode<T> root, T data) {
+    private BinaryTreeNode<T> deleteNode(BinaryTreeNode<T> node, T data) {
 
-        if(root.element == null) return root;
+        if (node == null || node.element == null) return node;
 
-        if(root.element.compareTo(data) > 0) {
-            root.left = deleteNode(root.getLeft(), data);
-        } else if(root.element.compareTo(data) < 0) {
-            root.right = deleteNode(root.getRight(), data);
+        int cmp = data.compareTo(node.element);
+
+        if (cmp < 0) {
+            node.left = deleteNode(node.getLeft(), data);
+        } else if (cmp > 0) {
+            node.right = deleteNode(node.getRight(), data);
         } else {
-            // node with no leaf nodes
-            if(root.left.element == null && root.right.element == null) {
+            // found node to delete
+            deletedFlag = true;
 
-                root.left = null;
-                root.right = null;
-                root.element = null;
-                return root;
-            } else if(root.getLeft() == null) {
+            boolean leftEmpty = (node.getLeft() == null || node.getLeft().getElement() == null);
+            boolean rightEmpty = (node.getRight() == null || node.getRight().getElement() == null);
+
+            // node with no leaf nodes
+            if (leftEmpty && rightEmpty) {
+                // return an empty sentinel node
+                return new BinaryTreeNode<>();
+            } else if (leftEmpty) {
 
                 // node with one node (no left node)
-                return root.right;
-            } else if(root.getRight() == null) {
+                return node.getRight();
+            } else if (rightEmpty) {
 
                 // node with one node (no right node)
-                return root.left;
+                return node.getLeft();
             } else {
 
                 // nodes with two nodes
                 // search for min number in right sub tree
-                T minValue = minValue(root.right);
-                root.element = minValue;
-                root.right = deleteNode(root.right, minValue);
+                T minValue = minValue(node.right);
+                node.element = minValue;
+                node.right = deleteNode(node.right, minValue);
             }
         }
 
-        return root;
+        return node;
     }
 
     private T minValue(BinaryTreeNode<T> node) {
 
-        if(node.left.element != null) {
-            return minValue(node.getLeft());
+        if (node == null) return null;
+        while (node.getLeft() != null && node.getLeft().getElement() != null) {
+            node = node.getLeft();
         }
-        return node.element;
+        return node.getElement();
     }
 
 
@@ -148,7 +158,8 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
         try {
             containsElement = search(targetElement) != null;
         } catch (ElementNotFoundException e) {
-            System.err.println("Element not found");
+            // don't print repeatedly to stderr; just return false
+            containsElement = false;
         }
         return containsElement;
     }
@@ -177,7 +188,11 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     }
 
     private void preOrder(BinaryTreeNode<T> node, Queue<T> tempList) {
-        // TODO implement pre order iterator
+        // ROOT LEFT RIGHT
+        if (node == null || node.element == null) return;
+        tempList.add(node.element);
+        preOrder(node.left, tempList);
+        preOrder(node.right, tempList);
     }
 
     public Iterator<T> iteratorInOrder() {
@@ -189,7 +204,11 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     }
 
     private void inOrder(BinaryTreeNode<T> node, Queue<T> tempList) {
-        // TODO implement in order iterator
+        // LEFT ROOT RIGHT
+        if (node == null || node.element == null) return;
+        inOrder(node.left, tempList);
+        tempList.add(node.element);
+        inOrder(node.right, tempList);
     }
 
     public Iterator<T> iteratorPostOrder() {
@@ -201,7 +220,11 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
     }
 
     private void postOrder(BinaryTreeNode<T> node, Queue<T> tempList) {
-        // TODO implement post order iterator
+        // LEFT RIGHT ROOT
+        if (node == null || node.element == null) return;
+        postOrder(node.left, tempList);
+        postOrder(node.right, tempList);
+        tempList.add(node.element);
     }
 
     public Iterator<T> iteratorLevelOrder() {
@@ -214,8 +237,31 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
 
     private void levelOrder(BinaryTreeNode<T> node, Queue<T> tempList) {
 
-        // TODO implement level order iterator
+        if (node == null || node.element == null) return;
 
+        // temporary node queue
+        Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
+        queue.add(node);
+
+        // while there are nodes to process...
+        while (!queue.isEmpty()) {
+
+            // store node value
+            BinaryTreeNode<T> tempNode = queue.poll();
+            if (tempNode == null) continue;
+            if (tempNode.element != null) tempList.add(tempNode.element);
+
+            // store left child if not null and not empty sentinel
+            if (tempNode.left != null && tempNode.left.element != null) {
+                queue.add(tempNode.left);
+            }
+
+            // store right child if not null and not empty sentinel
+            if (tempNode.right != null && tempNode.right.element != null) {
+                queue.add(tempNode.right);
+            }
+
+        }
     }
 
     private Iterator<BinaryTreeNode<T>> insertionIterator() {
@@ -228,19 +274,22 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
 
     private void levelOrderInsertionIterator(BinaryTreeNode<T> node, Queue<BinaryTreeNode<T>> tempList) {
 
+        if (node == null || node.element == null) return;
+
         Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
         queue.add(node);
 
         while (!queue.isEmpty()) {
 
             BinaryTreeNode<T> tempNode = queue.poll();
-            tempList.add(tempNode);
+            if (tempNode == null) continue;
+            if (tempNode.element != null) tempList.add(tempNode);
 
-            if (tempNode.left != null) {
+            if (tempNode.left != null && tempNode.left.element != null) {
                 queue.add(tempNode.left);
             }
 
-            if (tempNode.right != null) {
+            if (tempNode.right != null && tempNode.right.element != null) {
                 queue.add(tempNode.right);
             }
 
@@ -283,8 +332,8 @@ public class BinarySearchTree<T extends Comparable> implements Tree<T> {
                     next.add(n.getLeft());
                     next.add(n.getRight());
 
-                    if (n.getLeft() != null) nn++;
-                    if (n.getRight() != null) nn++;
+                    if (n.getLeft() != null && n.getLeft().getElement() != null) nn++;
+                    if (n.getRight() != null && n.getRight().getElement() != null) nn++;
 
                 }
             }

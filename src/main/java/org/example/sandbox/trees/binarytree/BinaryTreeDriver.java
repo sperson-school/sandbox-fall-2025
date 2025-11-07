@@ -53,8 +53,8 @@ public class BinaryTreeDriver {
 
         // binaryTree.delete(6);
 
-        // System.out.println();
-        // ((BinaryTree<Integer>) binaryTree).printTopDownTree();
+         System.out.println();
+         ((BinaryTree<Integer>) binaryTree).printTopDownTree();
     }
 
     private static void printTraversal(Iterator iterator) {

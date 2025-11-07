@@ -272,14 +272,36 @@ public class BinaryTree<T> implements Tree<T> {
 
     @Override
     public Iterator<T> iteratorLevelOrder() {
+        Queue<T> tempList = new LinkedList<>();
+        levelOrder(this.root, tempList);
 
-        // TODO implement level order iterator
-        return null;
+        return tempList.iterator();
     }
 
     public void levelOrder(BinaryTreeNode<T> node, Queue<T> tempList) {
 
-        // TODO implement level order iterator
+        // temporary node queue
+        Queue<BinaryTreeNode<T>> queue = new LinkedList<>();
+        queue.add(node);
+
+        // while there are nodes to process...
+        while (!queue.isEmpty()) {
+
+            // store node value
+            BinaryTreeNode<T> tempNode = queue.poll();
+            tempList.add(tempNode.element);
+
+            // store left child if not null
+            if (tempNode.left != null) {
+                queue.add(tempNode.left);
+            }
+
+            // store right child if not null
+            if (tempNode.right != null) {
+                queue.add(tempNode.right);
+            }
+
+        }
 
     }
 
