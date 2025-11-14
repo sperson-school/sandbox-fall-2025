@@ -8,7 +8,7 @@ public class Driver {
 
     public static void main(String[] args) {
         Box<Integer> box = new Box<>(42);
-        Box<Double> box1 = new Box<>(3.14);
+        Box<Integer> box1 = box;
         Box<Short> box2 = new Box<>((short) 123);
 
         //Box<String> box3 = new Box<>("Hello Generics");

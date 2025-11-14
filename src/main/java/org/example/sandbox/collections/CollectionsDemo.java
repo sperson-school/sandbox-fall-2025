@@ -19,5 +19,10 @@ public class CollectionsDemo {
         List<String> linkedList = new LinkedList<>();
 
         Queue<String> priorityQueue = new PriorityQueue<>();
+
+        Set<String> setAlias = set;
+
+        System.out.println(list);
+        System.out.println(setAlias);
     }
 }

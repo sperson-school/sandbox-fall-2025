@@ -19,11 +19,5 @@ public class Box<T extends Number> {
         this.contents = contents;
     }
 
-    @Override
-    public String toString() {
-        final StringBuffer sb = new StringBuffer("Box[");
-        sb.append(contents);
-        sb.append(']');
-        return sb.toString();
-    }
+
 }
