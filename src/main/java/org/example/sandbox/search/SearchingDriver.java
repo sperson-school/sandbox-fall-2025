@@ -15,7 +15,7 @@ public class SearchingDriver {
         System.out.println(SearchUtility.linearSearch(intArray, 1));
         System.out.println(SearchUtility.linearSearch(intArray, 10));
 
-        //System.out.println(SearchUtility.binarySearchRecursive(integerArray, 1));
-       // System.out.println(SearchUtility.binarySearchRecursive(integerArray, 10));
+        System.out.println(SearchUtility.binarySearchRecursive(integerArray, 1));
+        System.out.println(SearchUtility.binarySearchRecursive(integerArray, 10));
     }
 }
